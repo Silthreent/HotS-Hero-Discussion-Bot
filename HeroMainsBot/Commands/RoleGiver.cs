@@ -22,7 +22,7 @@ namespace HeroMainsBot.Commands
                 return;
             }
 
-            if(gRole.Color.RawValue != Discord.Color.Default.RawValue)
+            if(gRole.Color.RawValue != Color.Default.RawValue)
             {
                 await Context.User.GetOrCreateDMChannelAsync().Result.SendMessageAsync("Ineligible role to give");
                 await Context.Message.DeleteAsync();
@@ -45,7 +45,7 @@ namespace HeroMainsBot.Commands
                 return;
             }
 
-            if(gRole.Color.RawValue != Discord.Color.Default.RawValue)
+            if(gRole.Color.RawValue != Color.Default.RawValue)
             {
                 await Context.User.GetOrCreateDMChannelAsync().Result.SendMessageAsync("Ineligible role to remove");
                 await Context.Message.DeleteAsync();

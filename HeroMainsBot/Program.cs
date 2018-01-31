@@ -45,6 +45,15 @@ namespace HeroMainsBot
                 {
                     break;
                 }
+                else if(line == "username")
+                {
+                    Console.Write("Changing Username: ");
+                    line = Console.ReadLine();
+
+                    await client.CurrentUser.ModifyAsync(x => x.Username = line);
+
+                    Console.WriteLine("Username changed to " + line);
+                }
             }
         }
 
