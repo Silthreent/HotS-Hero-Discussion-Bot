@@ -54,6 +54,15 @@ namespace HeroMainsBot
 
                     Console.WriteLine("Username changed to " + line);
                 }
+                else if(line == "game")
+                {
+                    Console.Write("Changing Game: ");
+                    line = Console.ReadLine();
+
+                    await client.SetGameAsync(line);
+
+                    Console.WriteLine("Game changed to " + line);
+                }
             }
         }
 
@@ -73,14 +82,25 @@ namespace HeroMainsBot
                 return;
 
             int argPos = 0;
+            
             if(msg.HasCharPrefix('-', ref argPos))
             {
                 var context = new SocketCommandContext(client, msg);
                 var result = await commands.ExecuteAsync(context, argPos, services);
                 if(!result.IsSuccess)
                 {
-                    await context.Channel.SendMessageAsync(result.ErrorReason);
+                    Console.WriteLine("---");
+                    Console.WriteLine(context.User.Username + " : " + context.Message.Content);
+                    Console.WriteLine(result.ErrorReason);
+                    Console.WriteLine("---");
+
+                    await context.User.GetOrCreateDMChannelAsync().Result.SendMessageAsync(result.ErrorReason);
+                    await context.Message.DeleteAsync();
                 }
+            }
+            else if(message.Channel.Name == "bot-commands")
+            {
+                await message.DeleteAsync();
             }
         }
     }

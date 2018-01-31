@@ -30,6 +30,7 @@ namespace HeroMainsBot.Commands
             }
 
             await (Context.User as IGuildUser).AddRoleAsync(gRole);
+            Console.WriteLine("Gave " + Context.User.Username + " the role " + gRole.Name);
             await Context.User.GetOrCreateDMChannelAsync().Result.SendMessageAsync("You have been given the role " + gRole.Name + "!");
             await Context.Message.DeleteAsync();
         }
@@ -53,6 +54,7 @@ namespace HeroMainsBot.Commands
             }
 
             await (Context.User as IGuildUser).RemoveRoleAsync(gRole);
+            Console.WriteLine("Removed " + gRole.Name + " from " + Context.User.Username);
             await Context.Message.DeleteAsync();
         }
     }
