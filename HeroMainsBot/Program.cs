@@ -1,6 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using HeroMainsBot.Commands;
+using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
@@ -62,6 +64,20 @@ namespace HeroMainsBot
                     await client.SetGameAsync(line);
 
                     Console.WriteLine("Game changed to " + line);
+                }
+                else if(line == "shorthand")
+                {
+                    Console.WriteLine("Adding Shorthand");
+                    Console.Write("Role name: ");
+                    string role = Console.ReadLine();
+                    Console.Write("Shorthand: ");
+                    string shorthand = Console.ReadLine();
+                    using(var db = new LiteDatabase("HeroMains.db"))
+                    {
+                        var collection = db.GetCollection<ShortName>("shorthands");
+                        collection.Insert(new ShortName() { Short = shorthand, Real = role });
+                        Console.WriteLine("Added shorthand " + shorthand + " to role " + role);
+                    }
                 }
             }
         }

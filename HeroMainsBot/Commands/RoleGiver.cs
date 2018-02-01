@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using LiteDB;
 
 namespace HeroMainsBot.Commands
 {
@@ -53,23 +54,36 @@ namespace HeroMainsBot.Commands
 
        SocketRole FindRole(string role, SocketUserMessage message)
        {
-            var gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower() == role.ToLower());
+            string lowerRole = role.ToLower();
+
+            var gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower() == lowerRole);
             if(gRole == null)
             {
-                gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Trim(new char[] { ' ', '\'', '.' }) == role.ToLower());
+                gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Trim(new char[] { ' ', '\'', '.' }) == lowerRole);
                 if(gRole == null)
                 {
-                    gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Replace("the ", "") == role.ToLower());
+                    gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Replace("the ", "") == lowerRole);
                     if(gRole == null)
                     {
-                        gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Replace("the lost ", "") == role.ToLower());
+                        gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Replace("the lost ", "") == lowerRole);
                         if(gRole == null)
                         {
-                            Console.WriteLine("Could not find role " + role);
-                            message.Author.GetOrCreateDMChannelAsync().Result.SendMessageAsync("The role you requested does not exist");
-                            message.DeleteAsync();
+                            using(var db = new LiteDatabase("HeroMains.db"))
+                            {
+                                var collection = db.GetCollection<ShortName>("shorthands");
 
-                            return null;
+                                ShortName roleName = collection.FindOne(x => x.Short == lowerRole);
+                                if(roleName == null)
+                                {
+                                    Console.WriteLine("Could not find role " + role);
+                                    message.Author.GetOrCreateDMChannelAsync().Result.SendMessageAsync("The role you requested does not exist");
+                                    message.DeleteAsync();
+
+                                    return null;
+                                }
+
+                                gRole = Context.Guild.Roles.First(x => x.Name == roleName.Real);
+                            }
                         }
                     }
                 }
@@ -77,5 +91,12 @@ namespace HeroMainsBot.Commands
 
             return gRole;
        }
+    }
+
+    public class ShortName
+    {
+        public int Id { get; set; }
+        public string Short { get; set; }
+        public string Real { get; set; }
     }
 }
