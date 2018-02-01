@@ -5,6 +5,7 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Discord.WebSocket;
 
 namespace HeroMainsBot.Commands
 {
@@ -14,13 +15,9 @@ namespace HeroMainsBot.Commands
         [Command("get")]
         public async Task GetRole(string role)
         {
-            var gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name == role);
+            var gRole = FindRole(role, Context.Message);
             if(gRole == null)
-            {
-                await Context.User.GetOrCreateDMChannelAsync().Result.SendMessageAsync("The role you requested does not exist");
-                await Context.Message.DeleteAsync();
                 return;
-            }
 
             if(gRole.Color.RawValue != Color.Default.RawValue)
             {
@@ -38,13 +35,9 @@ namespace HeroMainsBot.Commands
         [Command("remove")]
         public async Task RemoveRole(string role)
         {
-            var gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name == role);
+            var gRole = FindRole(role, Context.Message);
             if(gRole == null)
-            {
-                await Context.User.GetOrCreateDMChannelAsync().Result.SendMessageAsync("The role you mentioned does not exist");
-                await Context.Message.DeleteAsync();
                 return;
-            }
 
             if(gRole.Color.RawValue != Color.Default.RawValue)
             {
@@ -57,5 +50,32 @@ namespace HeroMainsBot.Commands
             Console.WriteLine("Removed " + gRole.Name + " from " + Context.User.Username);
             await Context.Message.DeleteAsync();
         }
+
+       SocketRole FindRole(string role, SocketUserMessage message)
+       {
+            var gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower() == role.ToLower());
+            if(gRole == null)
+            {
+                gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Trim(new char[] { ' ', '\'', '.' }) == role.ToLower());
+                if(gRole == null)
+                {
+                    gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Replace("the ", "") == role.ToLower());
+                    if(gRole == null)
+                    {
+                        gRole = Context.Guild.Roles.DefaultIfEmpty(null).FirstOrDefault(x => x.Name.ToLower().Replace("the lost ", "") == role.ToLower());
+                        if(gRole == null)
+                        {
+                            Console.WriteLine("Could not find role " + role);
+                            message.Author.GetOrCreateDMChannelAsync().Result.SendMessageAsync("The role you requested does not exist");
+                            message.DeleteAsync();
+
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            return gRole;
+       }
     }
 }
